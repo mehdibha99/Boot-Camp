@@ -1,12 +1,10 @@
 const express = require("express");
-const dotenv = require({ path: "./config/config.env" });
-
+const dotenv = require("dotenv").config({ path: "./config/config.env" });
+const bootCamps = require("./routes/bootCamps");
 const app = express();
+const logger = require("./midelware/logger");
+app.use(logger);
 
-app.get("/", (req, res) => {
-  res.send(`<h1>Welcome to my API</h1>`);
-});
+app.use("/api/v1/bootCamps", bootCamps);
 
-const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, console.log(`listen on port ${PORT}`));
+app.listen(3000, () => console.log(`listen on port ${3000}`));
