@@ -14,3 +14,8 @@ app.use(logger);
 app.use("/api/v1/bootCamps", bootCamps);
 
 app.listen(3000, () => console.log(`listen on port ${3000}`));
+
+process.on("unhandledRejection", (err, promise) => {
+  console.log(`error : ${err.message}`);
+  server.close(() => process.exit(1));
+});
