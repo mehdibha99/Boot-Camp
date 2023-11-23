@@ -3,6 +3,7 @@ const dotenv = require("dotenv").config({ path: "./config/config.env" });
 const bootCamps = require("./routes/bootCamps");
 const connectDB = require("./config/db");
 const logger = require("./middleware/logger");
+const errorHandler = require("./middleware/errorHandler");
 
 //connection to data base
 connectDB();
@@ -15,6 +16,8 @@ app.use(express.json());
 app.use(logger);
 
 app.use("/api/v1/bootCamps", bootCamps);
+
+app.use(errorHandler);
 
 app.listen(3000, () => console.log(`listen on port ${3000}`));
 
