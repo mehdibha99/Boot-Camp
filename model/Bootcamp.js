@@ -1,17 +1,20 @@
 const mongoose = require("mongoose");
+const slugify = require("slugify");
+const geocoder = require("../utils/GeoCoder");
 
 const BootCampSchema = mongoose.Schema({
   name: {
-    require: true,
+    required: [true, "Please provide an Name"],
     type: String,
     trim: true,
-    maxlength: 50,
+    maxlength: [50, "the max length for name is 50"],
     unique: true,
   },
+  slug: String,
   description: {
-    require: true,
+    required: [true, "Please provide an Description"],
     type: String,
-    maxlength: 500,
+    maxlength: [500, "the max length for description is 500"],
   },
   website: {
     type: String,
@@ -20,13 +23,14 @@ const BootCampSchema = mongoose.Schema({
   },
   phone: {
     type: String,
-    maxlength: 20,
+    maxlength: [20, "the max length for phone is 20"],
   },
   email: {
     type: String,
     required: [true, "Please provide an Email"],
     match: /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/,
   },
+  address: String,
   location: {
     type: {
       type: String,
@@ -34,7 +38,7 @@ const BootCampSchema = mongoose.Schema({
       enum: ["Point"],
     },
     coordinates: {
-      require: true,
+      required: false,
       type: [Number],
       index: "2dsphere",
     },
@@ -47,7 +51,7 @@ const BootCampSchema = mongoose.Schema({
   },
   careers: {
     type: [String],
-    require: true,
+    required: [true, "Please provide an careers"],
     //enum mean the only available think
     enum: [
       "Web Development",
@@ -90,6 +94,42 @@ const BootCampSchema = mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+});
+
+//make a slug from the name of BootCamp
+BootCampSchema.pre("save", function (next) {
+  this.slug = slugify(this.name, { lower: true });
+  next();
+});
+
+//get all the information for coordination
+BootCampSchema.pre("save", async function (next) {
+  const loc = await geocoder.geocode(this.address);
+  const {
+    formattedAddress,
+    latitude,
+    longitude,
+    country,
+    city,
+    stateCode,
+    zipCode,
+    streetName,
+    streetNumber,
+    countryCode,
+    provider,
+  } = loc[0];
+  this.location = {
+    type: "Point",
+    coordinates: [longitude, latitude],
+    formattedAddress,
+    city,
+    zipCode,
+    country: countryCode,
+    state: stateCode,
+    street: streetName,
+  };
+  this.address = undefined;
+  next();
 });
 
 module.exports = mongoose.model("BootCamp", BootCampSchema);
