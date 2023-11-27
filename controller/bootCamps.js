@@ -6,13 +6,59 @@ const GeoCoder = require("../utils/GeoCoder");
 
 //get all the BootCamp
 exports.getBootCamps = asyncHandler(async (req, res, next) => {
-  const data = await BootCamp.find();
-  if (!data) {
-    return next(
-      new ErrorResponse(`BootCamp not found with id of ${req.params.id}`, 404)
-    );
+  const reqQuery = { ...req.query };
+
+  const removeFields = ["select", "sort", "limit", "page"];
+
+  removeFields.forEach((param) => delete reqQuery[param]);
+
+  let queryStr = JSON.stringify(reqQuery);
+
+  queryStr = queryStr.replace(
+    /\b(gt|gte|lt|lte|in)\b/g,
+    (match) => `$${match}`
+  );
+
+  query = BootCamp.find(JSON.parse(queryStr));
+
+  if (req.query.select) {
+    const fields = req.query.select.split(",").join(" ");
+    query = query.select(fields);
   }
-  res.status(200).json({ success: true, data });
+
+  if (req.query.sort) {
+    const sortBy = req.query.sort.split(",").join(" ");
+    query = query.sort(sortBy);
+  } else {
+    query = query.sort("-createdAt");
+  }
+
+  const limit = parseInt(req.query.limit, 10) || 1;
+  const page = parseInt(req.query.page, 10) || 1;
+  const skip = (page - 1) * limit;
+  const endIndex = page * limit;
+  const total = await BootCamp.countDocuments();
+
+  query = query.skip(skip).limit(limit);
+
+  const data = await query;
+
+  pagination = {};
+
+  if (endIndex < total) {
+    pagination.next = {
+      page: page + 1,
+      limit,
+    };
+  }
+  if (skip > 0) {
+    pagination.previous = {
+      page: page - 1,
+      limit,
+    };
+  }
+
+  res.status(200).json({ success: true, pagination, data });
 });
 
 // get a single BootCamp
