@@ -10,6 +10,10 @@ const {
   getBootCampsInRadius,
 } = require("../controller/bootCamps");
 
+const coursesRouter = require("./courses");
+
+routes.use("/:bootcampId/courses", coursesRouter);
+
 routes.route("/").get(getBootCamps).post(createBootCamp);
 
 routes
