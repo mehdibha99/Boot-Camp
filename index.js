@@ -3,6 +3,7 @@ const path = require("path");
 const dotenv = require("dotenv").config({ path: "./config/config.env" });
 const bootCamps = require("./routes/bootCamps");
 const courses = require("./routes/courses");
+const auth = require("./routes/auth");
 const connectDB = require("./config/db");
 const logger = require("./middleware/logger");
 const errorHandler = require("./middleware/errorHandler");
@@ -24,9 +25,12 @@ app.use(fileUpload());
 //make the directory static
 app.use(express.static(path.join(__dirname, "public")));
 
+//router
 app.use("/api/v1/bootCamps", bootCamps);
 app.use("/api/v1/courses", courses);
+app.use("/api/v1/auth", auth);
 
+//middleware for error
 app.use(errorHandler);
 
 app.listen(3000, () => console.log(`listen on port ${3000}`));
