@@ -74,7 +74,6 @@ exports.createCourse = asyncHandler(async (req, res, next) => {
     );
   }
   req.body.bootcamp = req.params.bootcampId;
-  console.log(req.body);
   course = await Course.create(req.body);
   res.status(201).json({ success: true, data: course });
 });

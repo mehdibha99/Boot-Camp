@@ -1,8 +1,8 @@
-const { mongoose } = require("mongoose");
 const BootCamp = require("../model/BootCamp");
 const ErrorResponse = require("../utils/ErrorResponse");
 const asyncHandler = require("../middleware/async");
 const GeoCoder = require("../utils/GeoCoder");
+const path = require("path");
 
 //get all the BootCamp
 exports.getBootCamps = asyncHandler(async (req, res, next) => {
@@ -106,6 +106,44 @@ exports.deleteBootCamp = asyncHandler(async (req, res, next) => {
     );
   await bootcamp.deleteOne();
   res.status(201).json({ success: true, data: {} });
+});
+
+//upload photo
+exports.bootCampUploadPhoto = asyncHandler(async (req, res, next) => {
+  const bootcamp = await BootCamp.findById(req.params.id);
+  if (!bootcamp)
+    return next(
+      new ErrorResponse(`BootCamp not found with id of ${req.params.id}`, 404)
+    );
+
+  if (!req.files) {
+    return next(new ErrorResponse(`file not found `, 400));
+  }
+  file = req.files.file;
+
+  //make sure the file is image
+  if (!file.mimetype.startsWith("image")) {
+    return next(new ErrorResponse(`file not image `, 400));
+  }
+
+  //make sure the size of photo is good
+  if (file.size > 1000000) {
+    return next(new ErrorResponse(`file size is too big `, 400));
+  }
+  //rename the photo
+  file.name = `photo_${bootcamp._id}${path.parse(file.name).ext}`;
+  file.mv(`./public/uploads/${file.name}`, async (err) => {
+    if (err) {
+      console.log(err);
+      return next(new ErrorResponse("something wrang", 500));
+    }
+  });
+
+  await BootCamp.findByIdAndUpdate(req.params.id, {
+    photo: file.name,
+  });
+
+  res.status(200).json({ success: true, data: file.name });
 });
 
 //get BootCamps within radius
