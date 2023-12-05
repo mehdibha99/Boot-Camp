@@ -8,6 +8,7 @@ const connectDB = require("./config/db");
 const logger = require("./middleware/logger");
 const errorHandler = require("./middleware/errorHandler");
 const fileUpload = require("express-fileupload");
+const cookieParser = require("cookie-parser");
 
 //connection to data base
 connectDB();
@@ -15,6 +16,9 @@ connectDB();
 const app = express();
 
 app.use(express.json());
+
+//cookie parser
+app.use(cookieParser());
 
 //middleware
 app.use(logger);
