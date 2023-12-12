@@ -1,6 +1,8 @@
 const asyncHandler = require("../middleware/async");
 const User = require("../model/User");
 const ErrorResponse = require("../utils/ErrorResponse");
+const sendEmail = require("../utils/sendEmail");
+const crypto = require("crypto");
 
 exports.register = asyncHandler(async (req, res, next) => {
   const { name, email, password, role } = req.body;
@@ -40,7 +42,71 @@ exports.login = asyncHandler(async (req, res, next) => {
     .json({ success: true, token });
 });
 
+//get all the information about the profile
 exports.getMe = asyncHandler(async (req, res, next) => {
   const user = await User.findById(req.user.id);
   res.status(200).json({ success: true, data: user });
+});
+
+//forgot password
+exports.forgotPassword = asyncHandler(async (req, res, next) => {
+  const user = await User.findOne({ email: req.body.email });
+
+  if (!user) {
+    return next(new ErrorResponse("There is no user with that email", 404));
+  }
+
+  const resetToken = await user.getResetPasswordToken();
+
+  await user.save();
+
+  const resetUrl = `${req.protocol}://${req.get(
+    "host"
+  )}/api/v1/resetpassword/${resetToken}`;
+
+  try {
+    await sendEmail({
+      email: user.email,
+      subject: "Password reset token",
+      message: resetUrl,
+    });
+
+    res.status(200).json({ success: true, data: "email sent" });
+  } catch (err) {
+    console.log(err);
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+
+    await user.save();
+    return next(new ErrorResponse("could not send the email", 500));
+  }
+});
+//reset password
+exports.resetPassword = asyncHandler(async (req, res, next) => {
+  //get hashed token
+  const resetPasswordToken = crypto
+    .createHash("sha256")
+    .update(req.params.resetToken)
+    .digest("hex");
+  const user = await User.findOne({
+    resetPasswordToken,
+    resetPasswordExpire: { $gt: Date.now() },
+  });
+  if (!user) {
+    return next(new ErrorResponse("Invalid or expired token", 400));
+  }
+  user.password = req.body.password;
+  user.resetPasswordToken = undefined;
+  user.resetPasswordExpire = undefined;
+  await user.save();
+
+  const options = {
+    expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    httpOnly: true,
+  };
+  const token = user.getSignedJwtToken();
+  res
+    .status(200)
+    .cookie("token", token, options)
+    .json({ success: true, token });
 });
