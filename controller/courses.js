@@ -10,7 +10,7 @@ exports.getCourses = asyncHandler(async (req, res, next) => {
     courses = Course.find({ bootcamp: req.params.bootcampId });
     return res
       .status(200)
-      .json({ success: true, count: courses.length, data: courses });
+      .json({ success: true, count: courses.count(), data: courses });
   } else {
     res.status(200).json(res.advancedQuery);
   }
@@ -39,24 +39,45 @@ exports.getCourse = asyncHandler(async (req, res, next) => {
 //update Course
 
 exports.updateCourse = asyncHandler(async (req, res, next) => {
-  const data = await Course.findByIdAndUpdate(req.params.id, req.body, {
-    runValidators: true,
-    new: true, //return the object after updated
-  });
-  if (!data) {
+  let course = await Course.findById(req.params.id);
+  if (!course) {
     return next(
       new ErrorResponse(`there is no Course with id ${req.params.id}`)
     );
   }
+  if (course.user.toString() !== req.user.id && req.user.role !== "admin") {
+    return next(
+      new ErrorResponse(
+        `user with id ${req.user.id} is not authorized to update this course`
+      )
+    );
+  }
+  course = await Course.findByIdAndUpdate(req.params.id, req.body, {
+    runValidators: true,
+    new: true, //return the object after updated
+  });
 
-  res.status(200).json({ success: true, data });
+  res.status(200).json({ success: true, data: course });
 });
 
 //delete course
 
 exports.deleteCourse = asyncHandler(async (req, res, next) => {
-  const data = await Course.findByIdAndDelete(req.params.id);
-  res.status(200).json({ success: true, data });
+  const data = await Course.findById(req.params.id);
+  if (!data) {
+    return next(
+      new ErrorResponse(`there is no course with id ${req.params.id} `, 401)
+    );
+  }
+  if (data.user.toString() !== req.user.id && req.user.role != "admin") {
+    return next(
+      new ErrorResponse(
+        `user with id ${req.user.id} is not authorized to delete this course`
+      )
+    );
+  }
+  await data.deleteOne();
+  res.status(200).json({ success: true, data: {} });
 });
 
 //create a course
@@ -71,7 +92,16 @@ exports.createCourse = asyncHandler(async (req, res, next) => {
       )
     );
   }
+  console.log(data);
+  if (data.user.toString() !== req.user.id && req.user.role != "admin") {
+    return next(
+      new ErrorResponse(
+        `user with id ${req.user.id} is not authorized to create this course`
+      )
+    );
+  }
   req.body.bootcamp = req.params.bootcampId;
+  req.body.user = req.user.id;
   course = await Course.create(req.body);
   res.status(201).json({ success: true, data: course });
 });

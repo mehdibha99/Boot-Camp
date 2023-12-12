@@ -21,11 +21,11 @@ const loadInDataBase = async () => {
   try {
     await BootCamp.create(bootCamps);
     await Course.create(courses);
-    await Course.create(users);
+    await User.create(users);
 
     process.exit();
   } catch (err) {
-    console.error(err);
+    console.error(err.message);
   }
 };
 
