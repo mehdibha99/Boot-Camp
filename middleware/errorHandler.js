@@ -3,7 +3,6 @@ const ErrorResponse = require("../utils/ErrorResponse");
 const errorHandler = (err, req, res, next) => {
   let error = { ...err };
   error.message = err.message;
-  console.log(err.stack);
 
   //bad id
   if (err.name === "CastError") {

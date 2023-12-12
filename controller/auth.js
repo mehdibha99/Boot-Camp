@@ -110,3 +110,46 @@ exports.resetPassword = asyncHandler(async (req, res, next) => {
     .cookie("token", token, options)
     .json({ success: true, token });
 });
+//update user information
+exports.updateDetails = asyncHandler(async (req, res, next) => {
+  let fieldToUpdate = {};
+  if (req.body.email) {
+    fieldToUpdate.email = req.body.email;
+  }
+  if (req.body.name) {
+    fieldToUpdate.name = req.body.name;
+  }
+  //check to see if there is any update in fields
+  if (Object.keys(fieldToUpdate).length === 0) {
+    return next(new ErrorResponse("there is no fields to update", 401));
+  }
+  const user = await User.findByIdAndUpdate(req.user.id, fieldToUpdate, {
+    new: true,
+    runValidators: true,
+  });
+  if (!user) {
+    return next(new ErrorResponse("No user found", 404));
+  }
+  res.status(200).json({ success: true, data: user });
+});
+
+//update user password
+exports.updatePassword = asyncHandler(async (req, res, next) => {
+  const user = await User.findById(req.user.id).select("+password");
+  if (!user) {
+    return next(new ErrorResponse("No user found", 404));
+  }
+  const password = req.body.password;
+  const newPassword = req.body.newPassword;
+  if (!password || !newPassword) {
+    return next(new ErrorResponse("please provide a password", 401));
+  }
+  //Check the current password
+  const isMatch = await user.testPassword(password);
+  if (!isMatch) {
+    return next(new ErrorResponse("the password is incorrect"));
+  }
+  user.password = newPassword;
+  await user.save();
+  res.status(200).json({ success: true, data: "password is updated" });
+});

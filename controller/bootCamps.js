@@ -6,21 +6,6 @@ const path = require("path");
 
 //get all the BootCamp
 exports.getBootCamps = asyncHandler(async (req, res, next) => {
-  const reqQuery = { ...req.query };
-
-  const removeFields = ["select", "sort", "limit", "page"];
-
-  removeFields.forEach((param) => delete reqQuery[param]);
-
-  let queryStr = JSON.stringify(reqQuery);
-
-  queryStr = queryStr.replace(
-    /\b(gt|gte|lt|lte|in)\b/g,
-    (match) => `$${match}`
-  );
-
-  query = BootCamp.find(JSON.parse(queryStr)).populate("courses");
-
   res.status(200).json(res.advancedQuery);
 });
 
