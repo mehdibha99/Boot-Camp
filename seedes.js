@@ -3,6 +3,7 @@ const fs = require("fs");
 const BootCamp = require("./model/BootCamp");
 const Course = require("./model/Course");
 const User = require("./model/User");
+const Review = require("./model/Review");
 
 mongoose.connect("mongodb://127.0.0.1:27017/devCamper");
 
@@ -17,11 +18,16 @@ const courses = JSON.parse(
 const users = JSON.parse(
   fs.readFileSync(`${__dirname}/data/users.json`, "utf-8")
 );
+
+const reviews = JSON.parse(
+  fs.readFileSync(`${__dirname}/data/reviews.json`, "utf-8")
+);
 const loadInDataBase = async () => {
   try {
     await BootCamp.create(bootCamps);
     await Course.create(courses);
     await User.create(users);
+    await Review.create(reviews);
 
     process.exit();
   } catch (err) {
@@ -34,6 +40,7 @@ const deleteData = async () => {
     await BootCamp.deleteMany();
     await Course.deleteMany();
     await User.deleteMany();
+    await Review.deleteMany();
 
     process.exit();
   } catch (err) {

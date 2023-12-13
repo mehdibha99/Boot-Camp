@@ -3,21 +3,17 @@ const ErrorResponse = require("../utils/ErrorResponse");
 const asyncHandler = require("../middleware/async");
 const BootCamp = require("../model/BootCamp");
 
-//get all the courses
-
+//get all the reviews
+//or get all courses in the BootCamp
 exports.getCourses = asyncHandler(async (req, res, next) => {
   if (req.params.bootcampId) {
-    courses = Course.find({ bootcamp: req.params.bootcampId });
+    courses = await Course.find({ bootcamp: req.params.bootcampId });
     return res
       .status(200)
       .json({ success: true, count: courses.count(), data: courses });
   } else {
     res.status(200).json(res.advancedQuery);
   }
-
-  const data = await query;
-
-  res.status(200).json({ success: true, count: data.length, data });
 });
 
 //get single Course

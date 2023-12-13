@@ -1,5 +1,4 @@
 const asyncHandler = require("../middleware/async");
-const { findById, findByIdAndRemove } = require("../model/User");
 const User = require("../model/User");
 const ErrorResponse = require("../utils/ErrorResponse");
 

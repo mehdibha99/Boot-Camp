@@ -15,8 +15,10 @@ const BootCamp = require("../model/BootCamp");
 const advancedQuery = require("../middleware/advancedQuery");
 
 const coursesRouter = require("./courses");
+const reviewsRouter = require("./review");
 
 routes.use("/:bootcampId/courses", coursesRouter);
+routes.use("/:bootcampId/reviews", reviewsRouter);
 
 routes
   .route("/")

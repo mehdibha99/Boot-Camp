@@ -5,6 +5,7 @@ const bootCamps = require("./routes/bootCamps");
 const courses = require("./routes/courses");
 const auth = require("./routes/auth");
 const admin = require("./routes/admin");
+const review = require("./routes/review");
 const connectDB = require("./config/db");
 const logger = require("./middleware/logger");
 const errorHandler = require("./middleware/errorHandler");
@@ -35,6 +36,7 @@ app.use("/api/v1/bootCamps", bootCamps);
 app.use("/api/v1/courses", courses);
 app.use("/api/v1/auth", auth);
 app.use("/api/v1/auth/users", admin);
+app.use("/api/v1/reviews", review);
 
 //middleware for error
 app.use(errorHandler);
