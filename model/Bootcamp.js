@@ -71,6 +71,9 @@ const BootCampSchema = mongoose.Schema(
     averageCost: {
       type: Number,
     },
+    averageRating: {
+      type: Number,
+    },
     photo: {
       type: String,
       default: "no-photo.jpg",
