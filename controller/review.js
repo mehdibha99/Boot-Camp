@@ -42,16 +42,3 @@ exports.createReview = asyncHandler(async (req, res, next) => {
   const review = await Review.create(req.body);
   return res.status(200).json({ success: true, data: review });
 });
-
-//delete Review
-exports.delet = asyncHandler(async (req, res, next) => {
-  const bootCamp = await BootCamp.findById(req.params.bootcampId);
-
-  if (!bootCamp) {
-    return next(new ErrorResponse("the is no bootCamp with these id", 404));
-  }
-  req.body.user = req.user.id;
-  req.body.bootcamp = bootCamp.id;
-  const review = await Review.create(req.body);
-  return res.status(200).json({ success: true, data: review });
-});
