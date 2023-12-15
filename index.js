@@ -12,6 +12,13 @@ const errorHandler = require("./middleware/errorHandler");
 const fileUpload = require("express-fileupload");
 const cookieParser = require("cookie-parser");
 
+//security
+const mongoSanitize = require("express-mongo-sanitize");
+const helmet = require("helmet");
+const xss = require("xss-clean");
+const rateLimit = require("express-rate-limit");
+const hpp = require("hpp");
+
 //connection to data base
 connectDB();
 
@@ -27,6 +34,34 @@ app.use(logger);
 
 //file upload
 app.use(fileUpload());
+
+//sanitize
+app.use(mongoSanitize());
+
+//protection headers
+app.use(helmet());
+
+//prevent xss attack
+app.use(xss());
+
+//limit the request
+const limiting = rateLimit({
+  windowMs: 10 * 60 * 1000, // 10 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+});
+app.use(limiting);
+
+//prevent http params pollution
+app.use(hpp());
+
+//enable request from other origin
+app.use(
+  cors({
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credential: true,
+  })
+);
 
 //make the directory static
 app.use(express.static(path.join(__dirname, "public")));

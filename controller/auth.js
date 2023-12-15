@@ -153,3 +153,12 @@ exports.updatePassword = asyncHandler(async (req, res, next) => {
   await user.save();
   res.status(200).json({ success: true, data: "password is updated" });
 });
+
+exports.logout = asyncHandler((req, res, next) => {
+  //clear cookie
+  res.cookie("token", "", {
+    expires: new Date(Date.now() + 10),
+    httpOnly: true,
+  });
+  res.status(200).json({ success: true, data: {} });
+});
